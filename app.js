@@ -1,9 +1,9 @@
 import * as M from './model.js';
 import * as B from './backup.js';
 import { lineChart, barChart } from './charts.js';
-import { STARTING_TEMPLATE, EXERCISE_NOTES } from './seed.js';
+import { STARTING_TEMPLATE, SEED_V1, EXERCISE_NOTES } from './seed.js';
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const KEY = 'wt.data';
 const app = document.getElementById('app');
 
@@ -122,11 +122,33 @@ function seedState() {
   const parsed = M.parseTemplate(STARTING_TEMPLATE, s);
   const tpl = M.applyParsed(s, parsed);
   s.activeTemplateId = tpl.id;
+  tpl.seed = 2;
   for (const [name, note] of Object.entries(EXERCISE_NOTES)) {
     const ex = M.findExercise(s, name);
     if (ex) ex.notes = note;
   }
   return s;
+}
+
+// Replaces an unedited copy of the first starting routine with the current one.
+// Keeps the same template and day ids so history and "done today" still line up.
+function upgradeSeed(s) {
+  let changed = false;
+  for (const t of Object.values(s.templates)) {
+    if (t.seed >= 2 || M.exportTemplate(s, t) !== SEED_V1) continue;
+    const old = M.findExercise(s, 'Supported Elevated Left-Leg Squat (mobility)');
+    if (old && !M.findExercise(s, 'Unweighted Squat Mobility')) { old.name = 'Unweighted Squat Mobility'; old.type = 'timed'; old.notes = ''; }
+    const nt = M.applyParsed(s, M.parseTemplate(STARTING_TEMPLATE, s));
+    delete s.templates[nt.id];
+    nt.id = t.id; nt.seed = 2;
+    for (const d of nt.days) { const od = t.days.find((x) => x.weekday === d.weekday); if (od) d.id = od.id; }
+    s.templates[t.id] = nt;
+    for (const n of ['Wall Push-up Plus', 'Light Band Low Row']) { const e = M.findExercise(s, n); if (e) e.archived = true; }
+    for (const [name, note] of Object.entries(EXERCISE_NOTES)) { const e = M.findExercise(s, name); if (e && !e.notes) e.notes = note; }
+    if (s.current && !s.current.touched) s.current = null;
+    changed = true;
+  }
+  return changed;
 }
 
 // ---------------------------------------------------------------- shell
@@ -329,7 +351,11 @@ function exerciseCard(w, e, i, { live, tpl }) {
   let body;
   if (type === 'check') {
     const s = e.sets[0] || (e.sets[0] = { w: null, r: null, s: null, d: null, done: false });
-    body = h('button', { class: s.done ? 'btn wide done-btn on' : 'btn wide done-btn', 'data-act': 'check', onclick: () => { s.done = !s.done; commit(w, live); renderMain(); } }, s.done ? 'Done ✓' : 'Mark done');
+    return h('div', { class: s.done ? 'card ex check-card complete' : 'card ex check-card', 'data-ex': ex.name },
+      h('div', { class: 'ck-row' },
+        h('div', { class: 'ck-text' }, h('button', { class: 'ex-name', onclick: () => exerciseInfo(e.exerciseId) }, ex.name), ...lines),
+        h('button', { class: s.done ? 'chk on' : 'chk', 'aria-label': `${ex.name} done`, 'data-act': 'check', onclick: () => { s.done = !s.done; commit(w, live); renderMain(); } }, '✓'),
+        h('button', { class: 'icon-btn', 'aria-label': 'More', 'data-act': 'menu', onclick: () => exerciseMenu(w, e, i, live) }, '⋯')));
   } else {
     const per = e.per ? ` / ${e.per}` : '';
     const cols = type === 'timed' ? ['sec' + per] : type === 'distance' ? [e.target && e.target.unit ? e.target.unit : 'dist', 'lb'] : [type === 'bodyweight' ? '+lb' : 'lb', 'reps' + per];
@@ -1000,6 +1026,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 }
 
 state = load();
+if (state && upgradeSeed(state)) save();
 if (state) {
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch { /* ignore */ }
   renderMain();

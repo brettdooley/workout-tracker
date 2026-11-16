@@ -1,6 +1,6 @@
 // Keeps a copy of the app's own files on the phone so it opens without internet.
 // Never caches GitHub calls; your data lives in the app's local storage, not here.
-const CACHE = 'wt-v1.0.0';
+const CACHE = 'wt-v1.1.0';
 const FILES = [
   './', 'index.html', 'styles.css', 'app.js', 'model.js', 'charts.js', 'backup.js', 'seed.js',
   'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',

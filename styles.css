@@ -228,3 +228,9 @@ details.notes summary { font-weight: 600; cursor: pointer; }
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 .about { margin: 18px 4px; }
+
+/* check-off items: one compact row */
+.check-card { padding: 8px 8px 8px 12px; }
+.ck-row { display: flex; align-items: center; gap: 6px; }
+.ck-text { flex: 1; min-width: 0; }
+.ck-row .icon-btn { color: var(--muted); }
