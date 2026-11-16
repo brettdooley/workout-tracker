@@ -3,7 +3,7 @@ import * as B from './backup.js';
 import { lineChart, barChart } from './charts.js';
 import { STARTING_TEMPLATE, SEED_V1, EXERCISE_NOTES } from './seed.js';
 
-const VERSION = '1.1.0';
+const VERSION = '1.1.1';
 const KEY = 'wt.data';
 const app = document.getElementById('app');
 
