@@ -1,7 +1,7 @@
 // Keeps a copy of the app's own files on the phone so it opens without internet.
 // With signal it always checks GitHub for newer files first (3-second limit), so updates
 // show up on the next open. Never caches GitHub API calls; your data is not stored here.
-const CACHE = 'wt-v1.1.1';
+const CACHE = 'wt-v1.2.0';
 const FILES = [
   './', 'index.html', 'styles.css', 'app.js', 'model.js', 'charts.js', 'backup.js', 'seed.js',
   'manifest.webmanifest', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png',

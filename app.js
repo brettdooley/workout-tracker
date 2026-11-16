@@ -3,7 +3,7 @@ import * as B from './backup.js';
 import { lineChart, barChart } from './charts.js';
 import { STARTING_TEMPLATE, SEED_V1, EXERCISE_NOTES } from './seed.js';
 
-const VERSION = '1.1.1';
+const VERSION = '1.2.0';
 const KEY = 'wt.data';
 const app = document.getElementById('app');
 
@@ -336,7 +336,12 @@ function exerciseCard(w, e, i, { live, tpl }) {
   }
   if (type !== 'check') {
     const last = M.lastEntryFor(state, e.exerciseId, w.date, w.id);
-    if (last) lines.push(h('div', { class: 'ex-last' }, `Last (${fmtDate(last.workout.date, { month: 'short', day: 'numeric' })}): ${setsText(type, last.entry.sets.filter((s) => s.done))}`));
+    if (last) {
+      const when = fmtDate(last.workout.date, { month: 'short', day: 'numeric' });
+      const txt = setsText(type, last.entry.sets.filter((s) => s.done));
+      if (last.entry.tooEasy) lines.push(h('div', { class: 'ex-easy' }, `Too easy last time (${when}): ${txt}. Go heavier.`));
+      else lines.push(h('div', { class: 'ex-last' }, `Last (${when}): ${txt}`));
+    }
     if (live && state.settings.progression && (type === 'weight' || type === 'bodyweight') && M.topOfRange(state, e, w.date, w.id)) {
       lines.push(h('div', { class: 'ex-hint' }, 'Top of range on every set last time: add weight.'));
     }
@@ -380,7 +385,11 @@ function exerciseCard(w, e, i, { live, tpl }) {
       h('div', { class: 'set-row set-head' }, h('span', { class: 'set-n' }, ''), ...cols.map((c) => h('span', { class: 'col' }, c)), h('span', { class: 'chk-sp' }, '')),
       ...rows);
   }
-  return h('div', { class: allDone ? 'card ex complete' : 'card ex', 'data-ex': ex.name }, head, ...lines, body);
+  // "Too easy" is for strength exercises only: weight or bodyweight, not part of a mobility/warm-up block.
+  const easy = !e.group && (type === 'weight' || type === 'bodyweight')
+    ? h('label', { class: 'check easy-box' }, h('input', { type: 'checkbox', checked: !!e.tooEasy, 'data-act': 'too-easy', onchange: (ev) => { e.tooEasy = ev.target.checked; commit(w, live); } }), 'Too easy')
+    : null;
+  return h('div', { class: allDone ? 'card ex complete' : 'card ex', 'data-ex': ex.name }, head, ...lines, body, easy);
 }
 
 function exerciseInfo(id) {

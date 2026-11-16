@@ -234,3 +234,6 @@ details.notes summary { font-weight: 600; cursor: pointer; }
 .ck-row { display: flex; align-items: center; gap: 6px; }
 .ck-text { flex: 1; min-width: 0; }
 .ck-row .icon-btn { color: var(--muted); }
+.ex-easy { font-size: 13px; font-weight: 600; color: var(--gold); margin-top: 2px; }
+label.check.easy-box { font-size: 15px; font-weight: 600; color: var(--muted); margin: 8px 0 0 30px; gap: 8px; }
+label.check.easy-box input { width: 20px; height: 20px; }
